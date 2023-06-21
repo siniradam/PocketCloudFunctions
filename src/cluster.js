@@ -1,6 +1,6 @@
 import os from "os";
 import cluster from "cluster";
-import { watch } from "node:fs";
+import { stat, watchFile } from "node:fs";
 import chalk from "chalk";
 
 export function setupCluster(__dirname, file, config, state) {
@@ -55,10 +55,15 @@ export function setupCluster(__dirname, file, config, state) {
     }
   });
 
-  watch(__dirname + file, { encoding: "buffer" }, (eventType) => {
-    console.log(chalk.yellow(`File ${file} changed. Restarting workers.`));
-    workers.forEach((worker) => worker.kill());
-  });
+  watchFile(
+    __dirname + file,
+    { encoding: "buffer" },
+    ({ mtime: preMtime }, { mtime: curMtime }) => {
+      // console.log({ preMtime, curMtime });
+      console.log(chalk.yellow(`File changed. Restarting workers.`));
+      workers.forEach((worker) => worker.kill());
+    }
+  );
 
   info(process, cpuCount, maxInstances);
 
