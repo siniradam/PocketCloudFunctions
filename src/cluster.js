@@ -1,7 +1,11 @@
 import os from "os";
 import cluster from "cluster";
+import { watch } from "node:fs";
+import chalk from "chalk";
 
 export function setupCluster(__dirname, file, config, state) {
+  let workers = new Map();
+
   // # Setup
   cluster.setupPrimary({
     exec: __dirname + file,
@@ -12,38 +16,64 @@ export function setupCluster(__dirname, file, config, state) {
 
   // # Spawn
   for (let i = 0; i < maxInstances; i++) {
-    cluster.fork();
+    // Spawn process
+    let clstr = cluster.fork();
+
+    // Add to workers map.
+    workers.set(clstr.process.pid, clstr);
+
+    // Update running instance count
     state.instances++;
   }
 
   cluster.on("exit", (worker, code, signal) => {
-    console.log(`worker ${worker.process.pid} has been killed`);
+    // Info
+    console.log(chalk.redBright(`worker ${worker.process.pid} has been killed`));
 
-    // Update running instance count
+    // Delete from workers map.
+    workers.delete(worker.process.pid);
+
+    // Update running instance count.
     state.instances--;
 
     if (state.restarts < config.maxRestarts) {
-      console.log("Starting worker.");
+      console.log(chalk.blue("Starting worker."));
 
       // Update running instance count
       state.instances++;
 
-      // Update restart count
-      state.restarts++;
+      if (signal !== "SIGTERM") {
+        // Update restart count
+        state.restarts++;
+      }
 
-      cluster.fork();
+      // Launch new worker
+      let clstr = cluster.fork();
+      workers.set(clstr.process.pid, clstr);
     } else {
-      console.log("Maximum number of restarts reached.");
+      console.log(chalk.red("Maximum number of restarts reached."));
     }
   });
 
+  watch(__dirname + file, { encoding: "buffer" }, (eventType) => {
+    console.log(chalk.yellow(`File ${file} changed. Restarting workers.`));
+    workers.forEach((worker) => worker.kill());
+  });
+
   info(process, cpuCount, maxInstances);
+
+  return {
+    cluster,
+    workers,
+  };
 }
 
 function info(process, cpuCount, maxInstances) {
-  console.log(`Primary pid=${process.pid}`);
+  console.log(chalk.green(`Cluster started pid=${process.pid}`));
 
   console.log(
-    `The total number of CPUs is ${cpuCount}, launching ${maxInstances} instances.`
+    chalk.yellowBright(
+      `The total number of CPUs is ${cpuCount}, launching ${maxInstances} instances.`
+    )
   );
 }
