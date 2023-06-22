@@ -1,5 +1,5 @@
 import { RateLimiterCluster } from "rate-limiter-flexible";
-import { config } from "../config";
+import { config } from "../config.js";
 
 const rateLimiter = new RateLimiterCluster({
   keyPrefix: config?.ratelimit?.keyPrefix || "express",
