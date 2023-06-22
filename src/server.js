@@ -1,15 +1,18 @@
-// Node Utils
-import { createRequire } from "node:module";
-const require = createRequire(import.meta.url.split("server.js")[0]);
-const { version: serverVersion } = require("../package.json");
-
 //Server
 import Express from "express";
 import Cors from "cors";
 import Helmet from "helmet";
 
+// Rate Limit
+import { rateLimiterMiddleware } from "./ratelimit.js";
+
 //Pocketbase
 import { pbHook } from "./pocketbase.js";
+
+// Node Utils
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url.split("server.js")[0]);
+const { version: serverVersion } = require("../package.json");
 
 const app = Express();
 
@@ -26,6 +29,8 @@ const express = () => {
   });
   app.use(cors);
   app.use(Express.json());
+  app.use(rateLimiterMiddleware);
+
   app.use(pbHook);
 
   //app.use(morgan("combined"));

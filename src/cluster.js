@@ -1,10 +1,13 @@
 import os from "os";
 import cluster from "cluster";
-import { stat, watchFile } from "node:fs";
+import { watchFile } from "node:fs";
 import chalk from "chalk";
+import { RateLimiterClusterMaster } from "rate-limiter-flexible";
 
 export function setupCluster(__dirname, file, config, state) {
   let workers = new Map();
+
+  new RateLimiterClusterMaster();
 
   // # Setup
   cluster.setupPrimary({
