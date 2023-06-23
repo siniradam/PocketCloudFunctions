@@ -4,15 +4,20 @@ import Cors from "cors";
 import Helmet from "helmet";
 
 // Rate Limit
-import { rateLimiterMiddleware } from "./ratelimit.js";
+import { rateLimiterMiddleware } from "./hooks/ratelimit.js";
 
 //Pocketbase
-import { pbHook } from "./pocketbase.js";
+import { pbHook } from "./hooks/pocketbase.js";
 
 // Node Utils
-import { createRequire } from "node:module";
-const require = createRequire(import.meta.url.split("server.js")[0]);
-const { version: serverVersion } = require("../package.json");
+// import { createRequire } from "node:module";
+// const require = createRequire(import.meta.url.split("server.js")[0]);
+// const { version: serverVersion } = require("../package.json");
+
+// import {version} from "../package.json";
+
+process.env.npm_package_version;
+const version = process.env.npm_package_version || 0;
 
 const app = Express();
 
@@ -24,7 +29,7 @@ const express = () => {
   app.use(Helmet());
   app.use(function (req, res, next) {
     res.setHeader("X-Powered-By", "PocketCloud");
-    res.setHeader("X-Server-Version", serverVersion);
+    res.setHeader("X-Server-Version", version);
     next();
   });
   app.use(cors);

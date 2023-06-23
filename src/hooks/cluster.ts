@@ -4,14 +4,14 @@ import { watchFile } from "node:fs";
 import chalk from "chalk";
 import { RateLimiterClusterMaster } from "rate-limiter-flexible";
 
-export function setupCluster(__dirname, file, config, state) {
+export function setupCluster(fnDirectory, file, config, state) {
   let workers = new Map();
 
   new RateLimiterClusterMaster();
 
   // # Setup
   cluster.setupPrimary({
-    exec: __dirname + file,
+    exec: fnDirectory + file,
   });
 
   const cpuCount = os.cpus().length;
@@ -58,15 +58,10 @@ export function setupCluster(__dirname, file, config, state) {
     }
   });
 
-  watchFile(
-    __dirname + file,
-    { encoding: "buffer" },
-    ({ mtime: preMtime }, { mtime: curMtime }) => {
-      // console.log({ preMtime, curMtime });
-      console.log(chalk.yellow(`File changed. Restarting workers.`));
-      workers.forEach((worker) => worker.kill());
-    }
-  );
+  watchFile(fnDirectory + file, () => {
+    console.log(chalk.yellow(`File changed. Restarting workers.`));
+    workers.forEach((worker) => worker.kill());
+  });
 
   info(process, cpuCount, maxInstances);
 
@@ -76,7 +71,7 @@ export function setupCluster(__dirname, file, config, state) {
   };
 }
 
-function info(process, cpuCount, maxInstances) {
+function info(process: any, cpuCount: Number, maxInstances: Number) {
   console.log(chalk.green(`Cluster started pid=${process.pid}`));
 
   console.log(

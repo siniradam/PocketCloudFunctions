@@ -9,8 +9,3 @@ export const config = {
     duration: 5,
   },
 };
-
-// ! Do Not Edit Below This Line !
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-export const __dirname = dirname(fileURLToPath(import.meta.url)) + config.functionsPath;

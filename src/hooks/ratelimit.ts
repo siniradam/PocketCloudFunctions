@@ -1,5 +1,8 @@
 import { RateLimiterCluster } from "rate-limiter-flexible";
-import { config } from "../config.js";
+import { config } from "../serverconfig.js";
+
+// Types
+import { NextFunction, Request, Response } from "express";
 
 const rateLimiter = new RateLimiterCluster({
   keyPrefix: config?.ratelimit?.keyPrefix || "express",
@@ -7,7 +10,11 @@ const rateLimiter = new RateLimiterCluster({
   duration: config?.ratelimit?.duration || 1,
 });
 
-export const rateLimiterMiddleware = (req, res, next) => {
+export const rateLimiterMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   rateLimiter
     .consume(req.ip)
     .then(() => {

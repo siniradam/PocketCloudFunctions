@@ -1,4 +1,4 @@
-import server from "../src/server.js";
+import server from "../server.js";
 
 const app = server.app();
 
