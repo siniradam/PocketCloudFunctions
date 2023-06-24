@@ -8,7 +8,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
-  "keywords": [],
+  "keywords": [
+    "pocketbase",
+    "faas",
+    "serverless",
+    "baas",
+    "firebase"
+  ],
   "author": "Koray K <koray@ohshift.io> (https://github.com/siniradam)",
   "license": "ISC",
   "dependencies": {
