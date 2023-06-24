@@ -7,7 +7,7 @@ import Helmet from "helmet";
 import { rateLimiterMiddleware } from "./hooks/ratelimit.js";
 
 //Pocketbase
-import { pbHook } from "./hooks/pocketbase.js";
+import { pbHook, pbTriggers } from "./hooks/pocketbase.js";
 
 // Node Utils
 // import { createRequire } from "node:module";
@@ -19,9 +19,8 @@ import { pbHook } from "./hooks/pocketbase.js";
 process.env.npm_package_version;
 const version = process.env.npm_package_version || 0;
 
-const app = Express();
-
 const express = () => {
+  const app = Express();
   const cors = Cors({ origin: true });
 
   //const morgan = require("morgan");
@@ -36,7 +35,11 @@ const express = () => {
   app.use(Express.json());
   app.use(rateLimiterMiddleware);
 
+  // app.use(pbTriggers);
+  app.use("/pbTriggers", pbTriggers);
   app.use(pbHook);
+
+  // app.emit('testEvent');
 
   //app.use(morgan("combined"));
 
@@ -45,10 +48,21 @@ const express = () => {
   return app;
 };
 
-const server = () => {
-  let app = express();
-  app.listen(process.env.PORT || 3000);
-  return app;
+let app = express();
+app.listen(process.env.PORT || 3000);
+
+const httpMethods = {
+  all: app.all.bind(app),
+  get: app.get.bind(app),
+  post: app.post.bind(app),
+  delete: app.delete.bind(app),
+  put: app.put.bind(app),
+  use: app.use.bind(app),
 };
 
-export default { app: server };
+const user = {
+  onCreate: (fn: (userRecord) => {}) => app.on("userRegistration", fn),
+  onDelete: (fn: (userRecord) => {}) => app.on("userDeletion", fn),
+};
+
+export default { http: httpMethods, user };
