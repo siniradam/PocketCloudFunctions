@@ -1,5 +1,4 @@
 import PocketBase from "pocketbase";
-
 import express from "express";
 import { pbMethods, pbUser } from "./types.js";
 

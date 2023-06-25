@@ -1,4 +1,4 @@
-import { pbMethods, pbUser } from "./hooks/types";
+import { pbMethods, pbUser } from "./middlewares/types";
 
 declare global {
   namespace Express {

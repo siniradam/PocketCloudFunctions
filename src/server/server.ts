@@ -4,19 +4,15 @@ import Cors from "cors";
 import Helmet from "helmet";
 
 // Rate Limit
-import { rateLimiterMiddleware } from "./hooks/ratelimit.js";
+import { rateLimiterMiddleware } from "../middlewares/ratelimit.js";
 
 //Pocketbase
-import { pbHook, pbTriggers } from "./hooks/pocketbase.js";
+import { pbHook, pbTriggers } from "../middlewares/pocketbase.js";
+import { config } from "../serverconfig.js";
 
 // Node Utils
 // import { createRequire } from "node:module";
 // const require = createRequire(import.meta.url.split("server.js")[0]);
-// const { version: serverVersion } = require("../package.json");
-
-// import {version} from "../package.json";
-
-process.env.npm_package_version;
 const version = process.env.npm_package_version || 0;
 
 const express = () => {
@@ -49,7 +45,7 @@ const express = () => {
 };
 
 let app = express();
-app.listen(process.env.PORT || 3000);
+app.listen(process.env.PORT || config.port || 3000);
 
 const httpMethods = {
   all: app.all.bind(app),

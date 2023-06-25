@@ -1,23 +1,36 @@
 import os from "os";
 import cluster from "cluster";
-import { watchFile } from "node:fs";
 import chalk from "chalk";
+
+import { watchFile } from "node:fs";
 import { RateLimiterClusterMaster } from "rate-limiter-flexible";
 
-export function setupCluster(fnDirectory, file, config, state) {
-  let workers = new Map();
+import { __dirname } from "../utils.js";
 
+export function setupCluster(config, state) {
+  // # References (list) of cluster processes.
+  const workers = new Map();
+
+  // # Main function process.
+  const file = "index.js";
+
+  // # Pathopf the proccess
+  const path = `${__dirname}${config.functionsPath}/${file}`;
+
+  // # Main Process Rate Limiter
   new RateLimiterClusterMaster();
 
   // # Setup
   cluster.setupPrimary({
-    exec: fnDirectory + file,
+    exec: path,
   });
 
   const cpuCount = os.cpus().length;
+
+  // # Number of maximum workers.
   const maxInstances = Math.max(1, cpuCount - config.freeCpuSlots);
 
-  // # Spawn
+  // # Initial run
   for (let i = 0; i < maxInstances; i++) {
     // Spawn process
     let clstr = cluster.fork();
@@ -29,6 +42,7 @@ export function setupCluster(fnDirectory, file, config, state) {
     state.instances++;
   }
 
+  // # Cluster process close event;
   cluster.on("exit", (worker, code, signal) => {
     // Info
     console.log(chalk.redBright(`worker ${worker.process.pid} has been killed`));
@@ -58,7 +72,8 @@ export function setupCluster(fnDirectory, file, config, state) {
     }
   });
 
-  watchFile(fnDirectory + file, () => {
+  // # Watch functions root file for changes.
+  watchFile(path, () => {
     console.log(chalk.yellow(`File changed. Restarting workers.`));
     workers.forEach((worker) => worker.kill());
   });

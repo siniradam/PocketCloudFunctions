@@ -2,15 +2,15 @@
 
 // # Config
 import { config } from "./serverconfig.js";
-import { setupCluster } from "./hooks/cluster.js";
-import { __dirname } from "./utils.js";
+import { setupCluster } from "./server/cluster.js";
+// import { __dirname } from "./utils.js";
 
 const state = {
   restarts: 0,
   instances: 0,
 };
 
-setupCluster(__dirname + config.functionsPath, "/index.js", config, state);
+setupCluster(config, state);
 
 // const cluster =
 // const processOne = cluster.workers.entries().next().value[1];
